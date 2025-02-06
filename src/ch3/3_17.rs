@@ -1,2 +1,0 @@
-use creater::semaphore::Semaphore;
-//
