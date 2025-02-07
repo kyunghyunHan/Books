@@ -11,6 +11,27 @@ pub fn main() {
 
     // t1.join().unwrap();
     // t2.join().unwrap();
+
+    let numbers = vec![1, 2, 3];
+
+    thread::spawn(move || {
+        for n in numbers {
+            println!("{n}");
+        }
+    })
+    .join()
+    .unwrap();
+
+    // println!("{numbers:?}");
+
+    let numbers = Vec::from_iter(0..=1000);
+    let t = thread::spawn(move || {
+        let len = numbers.len();
+        let sum = numbers.into_iter().sum::<usize>();
+        sum / len;
+    });
+    let average = t.join().unwrap();
+    // println!("average:{average}");
 }
 
 fn f() {
