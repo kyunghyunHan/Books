@@ -1,20 +1,16 @@
-use std::cell::Cell;
+use std::{sync::Mutex, thread};
 
-fn f(a: &Cell<i32>, b: &Cell<i32>) {
-    let before = a.get();
-    b.set(b.get() + 1);
-    let after = a.get();
-    if before != after {
-        x();
-    }
-}
-
-fn x() {
-    println!("{}", "execution");
-}
 pub fn main() {
-    let a = Cell::new(10);
-    let b = Cell::new(10);
-    
-    f(&a, &a);
+    let n = Mutex::new(0);
+    thread::scope(|s| {
+        for _ in 0..10 {
+            s.spawn(|| {
+                let mut guard = n.lock().unwrap();
+                for _ in 0..100 {
+                    *guard += 1;
+                }
+            });
+        }
+    });
+    assert_eq!(n.into_inner().unwrap(), 1000);
 }
