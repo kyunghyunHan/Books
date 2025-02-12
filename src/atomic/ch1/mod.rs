@@ -13,6 +13,6 @@ pub fn example() {
     // ch1_4::main();
     // ch1_5::main();
     // ch1_6::main();
-    ch1_7::main();
-    // ch1_8::main();
+    // ch1_7::main();
+    ch1_8::main();
 }
