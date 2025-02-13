@@ -9,5 +9,5 @@ pub mod ch3_8;
 pub mod ch3_9;
 
 pub fn example() {
-    ch3_3::main();
+    ch3_4::main();
 }
