@@ -10,7 +10,7 @@ pub fn main() {
     println!("Hello from the main thread");
 
     t1.join().unwrap();
-    t2.join().unwrap();
+    t2.join().unwrap();//작업이 끝날떄 까지 기다리기
 
     let numbers = vec![1, 2, 3];
     //변수 numbers의 소유권이 새로 만들어진 스레드로 이동
