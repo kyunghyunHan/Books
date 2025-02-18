@@ -26,6 +26,7 @@ pub fn main() {
     // println!("{numbers:?}");
 
     let numbers = Vec::from_iter(0..=1000);
+    //spawn함수는 'static라이프 타임을 갖는 타입을 입력받음
     let t = thread::spawn(move || {
         let len = numbers.len();
         let sum = numbers.into_iter().sum::<usize>();
