@@ -1,5 +1,7 @@
-use atomic_wait::{wait, wake_one};
+use atomic_wait::{wait, wake_all, wake_one};
+use std::sync::atomic::AtomicUsize;
 use std::thread;
+use std::time::Duration;
 use std::{
     cell::UnsafeCell,
     ops::{Deref, DerefMut},
@@ -7,7 +9,6 @@ use std::{
     time::Instant,
 };
 // use libc::wait;
-use crate::atomic::ch4::ch4_3::Guard;
 use std::sync::atomic::Ordering::Acquire;
 use std::sync::atomic::Ordering::Relaxed;
 use std::sync::atomic::Ordering::Release;
@@ -19,6 +20,7 @@ pub struct Mutex<T> {
     state: AtomicU32,
     value: UnsafeCell<T>,
 }
+
 unsafe impl<T> Sync for Mutex<T> where T: Send {}
 
 pub struct MutexGuard<'a, T> {
@@ -84,6 +86,73 @@ impl<T> Drop for MutexGuard<'_, T> {
         // self.mutex.state.store(0, Release);
         // wake_one(&self.mutex.state);
     }
+}
+
+pub struct Condvar {
+    counter: AtomicU32,
+    num_waiters: AtomicUsize, //추가
+}
+
+impl Condvar {
+    pub const fn new() -> Self {
+        Self {
+            counter: AtomicU32::new(0),
+            num_waiters: AtomicUsize::new(0),
+        }
+    }
+
+    pub fn notifiy_one(&self) {
+        if self.num_waiters.load(Relaxed) > 0 {
+            self.counter.fetch_add(1, Relaxed);
+            wake_one(&self.counter);
+        }
+        // self.counter.fetch_add(1, Relaxed);
+        // wake_one(&self.counter);
+    }
+
+    pub fn notifiy_all(&self) {
+        if self.num_waiters.load(Relaxed) > 0 {
+            self.counter.fetch_add(1, Relaxed);
+            wake_all(&self.counter);
+        }
+        // self.counter.fetch_add(1, Relaxed);
+        // wake_all(&self.counter);
+    }
+
+    pub fn wait<'a, T>(&self, guard: MutexGuard<'a, T>) -> MutexGuard<'a, T> {
+        self.num_waiters.fetch_add(1, Relaxed);
+        let count_value = self.counter.load(Relaxed);
+        let mutex = guard.mutex;
+        drop(guard);
+
+        wait(&self.counter, count_value);
+        self.num_waiters.fetch_sub(1, Relaxed);
+        mutex.lock()
+    }
+}
+
+#[test]
+fn test_condvar() {
+    let mutex = Mutex::new(0);
+    let condvar = Condvar::new();
+
+    let mut wakeups = 0;
+
+    thread::scope(|s| {
+        s.spawn(|| {
+            thread::sleep(Duration::from_secs(1));
+            *mutex.lock() = 123;
+            condvar.notifiy_one();
+        });
+
+        let mut m = mutex.lock();
+        while *m < 100 {
+            m = condvar.wait(m);
+            wakeups += 1;
+        }
+        assert_eq!(*m, 123);
+    });
+    assert!(wakeups < 10);
 }
 pub fn main() {
     let m = Mutex::new(0);
