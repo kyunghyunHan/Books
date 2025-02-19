@@ -28,7 +28,9 @@ fn f2() {
         }
     });
     //뮤텍스는 한번에 한 스레드만 접근을 허용하기 때문에 10초정도 소요
-    assert_eq!(n.into_inner().unwrap(), 1000);
+    // assert_eq!(n.into_inner().unwrap(), 1000);
+    println!("{}",n.into_inner().unwrap());
+
 }
 fn f3() {
     let n = Mutex::new(0);
@@ -43,8 +45,11 @@ fn f3() {
                 thread::sleep(Duration::from_secs(1));
             });
         }
-    })
+    });
+    println!("{}",n.into_inner().unwrap());
+    // assert_eq!(n.into_inner().unwrap(), 1000);
+
 }
 pub fn main() {
-    f3();
+    f2();
 }

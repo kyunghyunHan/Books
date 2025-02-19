@@ -11,13 +11,17 @@ fn f1() {
         let t = s.spawn(|| loop {
             let item = queue.lock().unwrap().pop_front();
             if let Some(item) = item {
-                dbg!(item);
+                // dbg!(item);
+                println!("{item}")
+                
             } else {
+                //큐가 비었다면 park상태로 들어감
                 thread::park();
             }
         });
         for i in 0.. {
             queue.lock().unwrap().push_back(i);
+            //추가할떄마다 unpark로 파킹상태를 해제
             t.thread().unpark();
             thread::sleep(Duration::from_secs(1));
         }
