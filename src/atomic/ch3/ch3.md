@@ -20,3 +20,6 @@
 - Release메모리 순서는 저장연산
 - Acquire메모리 순서는 읽기 연산
 - happens-before관계는 acquire-load연산이 release-store연산의 결과를 관찰할떄 만들어진다.
+
+## 
+- 스레드마다 다른 순서로 작업이 수행될수 있기 떄문에 모든 아토믹 연산에 대해 일관된 순서사 존재하지 않음
