@@ -11,5 +11,5 @@ mod ch10;
 
 pub fn example() {
     // ch1::example();
-    ch1::example();
+    ch2::example();
 }
