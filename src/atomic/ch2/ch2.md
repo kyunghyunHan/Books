@@ -1,34 +1,129 @@
-## 아토믹
-- 완전히 수행되었거나 아직 수행되지 않은 상태
-- 여러 스레드가 안전하게 동일한 변수를 읽고 변경이 가능
-## Relaxed
-- 가장 적은 보장을 제공,그냥 실행만 보장
+# 러스트의 Atomic 연산과 메모리 순서
 
-## Acquire
-- 다른 스레드가 변경한 값을 가져오기 전까지 실행 안함
+## 1. Atomic 기본 개념
+```rust
+use std::sync::atomic::{AtomicI32, Ordering};
 
-## Release
-- 현재 스레드가 변경한 값을 다른스레드가 볼떄까지 실행 안함
+let counter = AtomicI32::new(0);
+```
 
-## AcqRel
-- Acquire+ Relase 조합
+### 핵심 특징
+- 연산이 원자적으로 실행됨 (중간 상태 없음)
+- 멀티스레드 환경에서 안전하게 공유 가능
+- 락 없이도 스레드 간 데이터 공유 가능
 
-## SeqCst
-- 가장 엄격한 순서유지 (추천,안정적)
+## 2. 메모리 순서 (Memory Ordering)
 
-## load
-- 읽기
+### Relaxed
+```rust
+counter.store(1, Ordering::Relaxed);
+// 최소한의 보장만 제공
+// 단순 실행만 보장
+```
 
-## Store
-- 아토믹하게 새 값을 변수 쓰기
+### Acquire
+```rust
+let value = counter.load(Ordering::Acquire);
+// 다른 스레드의 변경사항 확인 후 실행
+```
 
-## compare-and-exchange
-- 가장 뛰어나고 유연한 아토믹 연산
-- 값이 동일한 경우에만 새로운 값으로 업데이트
+### Release
+```rust
+counter.store(2, Ordering::Release);
+// 현재 변경사항이 다른 스레드에 보일 때까지 대기
+```
 
-## 단순한 카운터 증가 감소같은 연산 =>아토믹
-## 락없이 스레드간 공유 변수 사용 =>아토믹
-## 데이터가 복잡하거나 여러 필드르 필드를 동시에 업데이트
+### AcqRel (Acquire + Release)
+```rust
+counter.fetch_add(1, Ordering::AcqRel);
+// 양방향 동기화 보장
+```
 
-## 요점
-- 아토믹 연산은 분할할수 없으며 완전히 완료되었거나 아직 일어나지 않는 두가지 상태만 가짐
+### SeqCst (Sequential Consistency)
+```rust
+counter.fetch_add(1, Ordering::SeqCst);
+// 가장 엄격한 순서 보장
+// 안정성이 중요할 때 권장
+```
+
+## 3. 주요 Atomic 연산
+
+### Load 연산
+```rust
+let current = counter.load(Ordering::SeqCst);
+// 현재 값을 원자적으로 읽기
+```
+
+### Store 연산
+```rust
+counter.store(5, Ordering::SeqCst);
+// 새 값을 원자적으로 저장
+```
+
+### Compare and Exchange
+```rust
+let result = counter.compare_exchange(
+    expected,    // 예상되는 현재 값
+    new_value,   // 설정하려는 새 값
+    Ordering::SeqCst,
+    Ordering::SeqCst
+);
+// 값이 expected와 같을 때만 new_value로 업데이트
+```
+
+## 4. 사용 시나리오
+
+### 적합한 경우
+- 단순 카운터 구현
+- 플래그 변수 관리
+- 스레드 간 간단한 신호 전달
+
+### 부적합한 경우
+- 복잡한 데이터 구조
+- 여러 필드의 동시 업데이트
+- 트랜잭션이 필요한 연산
+
+## 5. 구현 예시
+
+### 카운터 구현
+```rust
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::thread;
+
+let counter = AtomicUsize::new(0);
+let counter_ref = &counter;
+
+// 여러 스레드에서 안전하게 카운터 증가
+let handles: Vec<_> = (0..10).map(|_| {
+    thread::spawn(move || {
+        counter_ref.fetch_add(1, Ordering::SeqCst);
+    })
+}).collect();
+
+// 모든 스레드 완료 대기
+for handle in handles {
+    handle.join().unwrap();
+}
+```
+
+## 핵심 정리
+
+1. **Atomic 특성**
+   - 연산은 분할 불가능
+   - 완료 또는 미실행 상태만 존재
+   - 스레드 간 안전한 데이터 공유
+
+2. **Ordering 선택**
+   - 일반적으로 SeqCst 사용 권장
+   - 성능이 중요한 경우 더 약한 순서 고려
+
+3. **최적 사용 사례**
+   - 단순 카운터
+   - 플래그
+   - 간단한 공유 변수
+
+4. **주의사항**
+   - 복잡한 데이터는 Mutex 사용 권장
+   - 적절한 메모리 순서 선택 중요
+
+이렇게 정리해보았습니다. Atomic 연산의 핵심 개념과 실제 사용 예시를 포함했습니다.
