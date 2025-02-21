@@ -12,5 +12,12 @@ rand_distr = "0.5.0"
 rand = "0.9.0"
 ndarray = "0.16.1"
 polars = { version = "0.46.0", features = ["ndarray","to_dummies","lazy","describe","strings","list_count","describe","cov","log","rolling_window"] }
-plotters = { version = "0.3.7", default-features = false, features = ["bitmap_backend", "area_series","line_series","all_elements"] }
+plotters = { version = "0.3.7", default-features = false, features = [
+    "bitmap_backend", 
+        "bitmap_encoder",  # PNG 출력을 위해 추가
 
+    "area_series", 
+    "line_series", 
+    "all_elements", 
+   "ttf"
+] }
