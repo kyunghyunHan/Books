@@ -25,7 +25,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     let sum = df.clone().lazy().select([col("numbers").sum()]).collect()?;
 
     println!("{:?}", sum);
-
+    // let doubled2 = df.apply("numbers", |flosts| flosts)?;
     //df.apply
     let doubled = df
         .clone()
@@ -34,6 +34,20 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         .collect()?;
 
     println!("{:?}", doubled);
+    df.with_column(Series::new(
+        "floats".into(),
+        [1.5f64, 2.5f64, 3.5f64, 4.5f64],
+    ))?;
+
+    let new_row = DataFrame::new(vec![
+        Series::new("index".into(), ["Jil"]).into(),
+        Series::new("numbers".into(), &[100i32]).into(),
+        Series::new("floats".into(), &[5.75f64]).into(),
+    ])?;
+
+    df.extend(&new_row)?;
+
+    println!("{:?}", df);
 
     Ok(())
 }
