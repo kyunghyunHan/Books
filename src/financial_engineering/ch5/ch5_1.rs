@@ -46,8 +46,10 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     ])?;
 
     df.extend(&new_row)?;
-
-    println!("{:?}", df);
+    //df.mean()//평균
+    println!("{:?}", df.clone().lazy().mean().collect()?);
+    //std : 표준편차
+    println!("{:?}", df.clone().lazy().std(1).collect()?);
 
     Ok(())
 }
