@@ -4,7 +4,7 @@ use plotters::series::LineSeries;
 use polars::prelude::*;
 use std::error::Error;
 
-const OUT_FILE_NAME: &str = "assets/stock.png";
+const OUT_FILE_NAME: &str = "./assets/img/stock.png";
 
 pub fn main() -> Result<(), Box<dyn Error>> {
     let df = LazyCsvReader::new("./assets/tr_eikon_eod_data.csv")
@@ -65,10 +65,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     // 4. 결과 수집
     let result = volatility.collect()?;
 
-    // 결과 확인 - 좀 더 읽기 쉽게 출력
-    println!("\nFinal Result:");
-    println!("Available columns: {:?}", result.get_column_names());
-    println!("First few rows:");
+
     if let (Ok(date_col), Ok(price_col), Ok(vola_col)) = (
         result.column("Date"),
         result.column("price"),
@@ -107,14 +104,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             }
         }
     }
-    // 결과 확인
-    println!("\nFinal Result:");
-    println!("Available columns: {:?}", result.get_column_names());
-    println!("First few rows:\n{:?}", result.head(Some(5)));
-    // 결과 확인
-    println!("\nFinal Result:");
-    println!("Available columns: {:?}", result.get_column_names());
-    println!("First few rows:\n{:?}", result.head(Some(5)));
+ 
 
     // 5. 시각화 설정
     let root = BitMapBackend::new(OUT_FILE_NAME, (1000, 800)).into_drawing_area();
