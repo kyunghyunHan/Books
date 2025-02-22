@@ -1,5 +1,10 @@
+use chrono::NaiveDateTime;
+use ndarray::Array2;
 use polars::{lazy, prelude::*};
+use rand::thread_rng;
+use rand_distr::{Distribution, StandardNormal}; // Distribution trait을 추가로 import
 use std::error::Error;
+
 pub fn main() -> Result<(), Box<dyn Error>> {
     let mut df = df! [
         "index" => ["a", "b", "c", "d"],
@@ -50,6 +55,47 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     println!("{:?}", df.clone().lazy().mean().collect()?);
     //std : 표준편차
     println!("{:?}", df.clone().lazy().std(1).collect()?);
+
+    let mut rng = thread_rng();
+    let normal = StandardNormal;
+    let a: Array2<f64> = Array2::from_shape_fn((9, 4), |_| normal.sample(&mut rng));
+    let columns: Vec<Column> = (0..a.ncols())
+        .map(|i| Ok(Series::new(format!("col_{}", i).into(), a.column(i).to_vec()).into()))
+        .collect::<PolarsResult<Vec<Column>>>()?;
+    let mut df = DataFrame::new(columns)?;
+    println!("{:?}", df.clone());
+    let df = df
+        .rename("col_0", "No1".into())?
+        .rename("col_1", "No2".into())?
+        .rename("col_2", "No3".into())?
+        .rename("col_3", "No4".into())?;
+    // let mean_result = df.clone()
+    // .lazy()
+    // .rename(["No1", "No2", "No3", "No4"])  // lazy context에서 이름 변경
+    // .with_column(col("No2").mean().alias("No2_mean"))
+    // .collect()?;
+    let mean_no2 = df.column("No2")?.mean_reduce();
+    // let mean_result = df
+    //     .clone()
+    //     .lazy()
+    //     .with_column(col("No2").mean().alias("No2_mean")) // 원래 열 이름인 "col_1" 사용
+    //     .collect()?;
+    println!("Mean of No2: {:?}", mean_no2);
+
+    let start = NaiveDateTime::parse_from_str("2019-01-31 00:00:00", "%Y-%m-%d %H:%M:%S")?;
+    let end = NaiveDateTime::parse_from_str("2019-09-30 00:00:00", "%Y-%m-%d %H:%M:%S")?;
+
+    let dates = date_range(
+        "dates".into(),         // PlSmallStr로 변환
+        start,                  // NaiveDateTime
+        end,                    // NaiveDateTime
+        Duration::parse("1mo"), // Duration
+        ClosedWindow::Both,     // ClosedWindow
+        TimeUnit::Milliseconds, // TimeUnit
+        None,                   // timezone
+    )?;
+    let date_series = Series::new("dates".into(), dates);
+    println!("{:?}", date_series);
 
     Ok(())
 }
