@@ -69,17 +69,9 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         .rename("col_1", "No2".into())?
         .rename("col_2", "No3".into())?
         .rename("col_3", "No4".into())?;
-    // let mean_result = df.clone()
-    // .lazy()
-    // .rename(["No1", "No2", "No3", "No4"])  // lazy context에서 이름 변경
-    // .with_column(col("No2").mean().alias("No2_mean"))
-    // .collect()?;
+
     let mean_no2 = df.column("No2")?.mean_reduce();
-    // let mean_result = df
-    //     .clone()
-    //     .lazy()
-    //     .with_column(col("No2").mean().alias("No2_mean")) // 원래 열 이름인 "col_1" 사용
-    //     .collect()?;
+   
     println!("Mean of No2: {:?}", mean_no2);
 
     let start = NaiveDateTime::parse_from_str("2019-01-31 00:00:00", "%Y-%m-%d %H:%M:%S")?;

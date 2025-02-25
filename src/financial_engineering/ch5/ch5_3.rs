@@ -29,21 +29,13 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
             0f64..y.len() as f64, // x 범위 수정
             min_y..max_y,         // y 범위 수정
         )?;
-
+    
     chart.configure_mesh().draw()?;
     chart.draw_series(LineSeries::new(
         x.iter().zip(y.iter()).map(|(x, y)| (*x, *y)),
         &BLUE,
     ))?;
-    //점 추가
-    chart.draw_series(PointSeries::of_element(
-        x.iter().zip(y.iter()).map(|(x, y)| (*x, *y)),
-        5,    // point size
-        &RED, // point color
-        &|coord, size, style| {
-            EmptyElement::at(coord) + Circle::new((0, 0), size, style.filled()) // Or use Cross, TriangleMarker, etc.
-        },
-    ))?;
+
     root.present()?;
 
     Ok(())
