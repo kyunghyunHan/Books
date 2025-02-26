@@ -4,6 +4,7 @@ use ndarray_rand::rand::SeedableRng;
 use ndarray_rand::rand_distr::StandardNormal;
 use ndarray_rand::RandomExt;
 use plotters::prelude::*;
+const OUT_FILE_NAME: &str = "./assets/img/ch_7_1.png";
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Set random seed (ndarray-rand uses a different approach)
@@ -16,7 +17,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let x: Array1<f64> = Array1::range(0., y.len() as f64, 1.);
 
     // Plot using plotters
-    let root = BitMapBackend::new("./assets/img/plot.png", (640, 480)).into_drawing_area();
+    let root = BitMapBackend::new(OUT_FILE_NAME, (640, 480)).into_drawing_area();
     root.fill(&WHITE)?;
 
     let min_y = y.iter().fold(f64::INFINITY, |a, &b| a.min(b));

@@ -1,5 +1,6 @@
 use ndarray::Array1;
 use plotters::prelude::*;
+const OUT_FILE_NAME: &str = "./assets/img/ch_7_3.png";
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 첫 번째 그래프 데이터 (감소하는 선 그래프)
@@ -19,8 +20,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let x2: Vec<usize> = (0..y2.len()).collect();
 
     // 그래프 생성을 위한 영역 설정
-    let root =
-        BitMapBackend::new("assets/img/subplots_customized.png", (900, 500)).into_drawing_area();
+    let root = BitMapBackend::new(OUT_FILE_NAME, (900, 500)).into_drawing_area();
     root.fill(&WHITE)?;
 
     // 영역을 두 부분으로 나누기 (좌우로)

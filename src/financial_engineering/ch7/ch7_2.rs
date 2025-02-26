@@ -4,6 +4,8 @@ use ndarray_rand::rand::SeedableRng;
 use ndarray_rand::rand_distr::StandardNormal;
 use ndarray_rand::RandomExt;
 use plotters::prelude::*;
+const OUT_FILE_NAME: &str = "./assets/img/ch_7_2.png";
+
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 랜덤 시드 설정
     let mut rng = StdRng::seed_from_u64(42);
@@ -28,7 +30,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let x: Vec<f64> = (0..y.nrows()).map(|i| i as f64).collect();
 
     // 그래프 생성
-    let root = BitMapBackend::new("assets/img/two_series_plot.png", (800, 600)).into_drawing_area();
+    let root = BitMapBackend::new(OUT_FILE_NAME, (800, 600)).into_drawing_area();
     root.fill(&WHITE)?;
 
     // 데이터의 최소/최대값 찾기 (두 시리즈 모두 고려)

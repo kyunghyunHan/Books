@@ -4,7 +4,7 @@ use plotters::chart::SeriesLabelPosition;
 use polars::prelude::*;
 use std::error::Error;
 
-const OUT_FILE_NAME: &str = "./assets/img/stock_subplots.png";
+const OUT_FILE_NAME: &str = "./assets/img/ch8_2.png";
 
 pub fn main() -> Result<(), Box<dyn Error>> {
     // 데이터 로드

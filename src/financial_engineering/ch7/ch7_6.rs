@@ -4,6 +4,7 @@ use ndarray_rand::rand_distr::Normal;
 use ndarray_rand::RandomExt;
 use plotters::prelude::*;
 use ndarray::Array1;
+const OUT_FILE_NAME: &str = "./assets/img/ch_7_6.png";
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 랜덤 시드 설정
@@ -20,7 +21,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let data2: Array1<f64> = Array1::random_using(1000, normal_dist2, &mut rng2);
     
     // 그래프 생성
-    let root = BitMapBackend::new("histogram.png", (800, 600)).into_drawing_area();
+    let root = BitMapBackend::new(OUT_FILE_NAME, (800, 600)).into_drawing_area();
     root.fill(&WHITE)?;
     
     // 데이터 범위 설정 (히스토그램을 위한)

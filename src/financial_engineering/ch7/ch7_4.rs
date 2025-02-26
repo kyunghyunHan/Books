@@ -4,6 +4,7 @@ use ndarray_rand::rand::SeedableRng;
 use ndarray_rand::rand_distr::Normal;
 use ndarray_rand::RandomExt;
 use plotters::prelude::*;
+const OUT_FILE_NAME: &str = "./assets/img/ch_7_4.png";
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 랜덤 시드 설정
@@ -15,7 +16,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let data: Array2<f64> = Array2::random_using((1000, 2), normal_dist, &mut rng);
 
     // 그래프 생성
-    let root = BitMapBackend::new("assets/img/scatter_plot.png", (800, 600)).into_drawing_area();
+    let root = BitMapBackend::new(OUT_FILE_NAME, (800, 600)).into_drawing_area();
     root.fill(&WHITE)?;
 
     // 축 범위 설정 (-3.5 ~ 3.5)
