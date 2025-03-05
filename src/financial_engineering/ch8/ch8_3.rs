@@ -1,237 +1,201 @@
-use chrono::NaiveDate;
-use plotters::prelude::*;
-use plotters::chart::SeriesLabelPosition;
-use polars::prelude::*;
-use std::error::Error;
+// use plotters::prelude::*;
+// use plotters::chart::SeriesLabelPosition;
+// use polars::prelude::*;
+// use std::error::Error;
 
-const OUT_FILE_NAME: &str = "./assets/img/ch8_3.png";
+// const OUT_FILE_NAME: &str = "./assets/img/ch_8-3.png";
 
-pub fn main() -> Result<(), Box<dyn Error>> {
-    // 데이터 로드
-    let df = LazyCsvReader::new("./assets/data/tr_eikon_eod_data.csv")
-        .with_has_header(true)
-        .finish()?
-        .collect()?;
+// pub fn main() -> Result<(), Box<dyn Error>> {
+//     // 데이터 로드
+//     let df = LazyCsvReader::new("./assets/data/tr_eikon_eod_data.csv")
+//         .with_has_header(true)
+//         .finish()?
+//         .collect()?;
     
-    println!("Columns in DataFrame: {:?}", df.get_column_names());
+//     println!("Columns in DataFrame: {:?}", df.get_column_names());
+//     println!("DataFrame Schema: {:?}", df.schema());
     
-    // 날짜 형식 확인을 위해 첫 몇 개의 날짜 출력
-    let date_col = df.column("Date")?;
-    println!("Date column type: {:?}", date_col.dtype());
-    println!("First 5 date values:");
-    for i in 0..5.min(df.height()) {
-        if let Some(row) = df.get(i) {
-            let date_idx = df.get_column_names()
-                .iter()
-                .position(|c| c.to_string() == "Date")
-                .unwrap();
-            println!("Date at row {}: '{}'", i, row[date_idx]);
-        }
-    }
+//     // 날짜 데이터 타입 확인
+//     let date_col = df.column("Date")?;
+//     println!("Date column type: {:?}", date_col.dtype());
     
-    // 서브플롯에 표시할 열 목록 (이미지에 표시된 순서와 동일하게)
-    let columns_to_plot: [&str; 12] = [
-        "AAPL.O", "MSFT.O", "INTC.O", "AMZN.O", "GS.N", 
-        "SPY", ".SPX", ".VIX", "EUR=", "XAU=", "GDX", "GLD"
-    ];
+//     // Date 값을 문자열로 출력하여 확인
+//     println!("First few Date values:");
+//     for i in 0..5.min(df.height()) {
+//         let row = df.get(i);
+//         if let Some(row_values) = row {
+//             if !row_values.is_empty() {
+//                 println!("{}: {:?}", i, row_values[0]);
+//             }
+//         }
+//     }
     
-    // 날짜 컬럼 가져오기
-    let mut dates: Vec<NaiveDate> = Vec::new();
-    let date_col = df.column("Date")?;
+//     // 날짜 데이터 수동 변환 시도
+//     let mut dates = Vec::new();
+//     for i in 0..df.height() {
+//         if let Some(row_values) = df.get(i) {
+//             if !row_values.is_empty() {
+//                 // AnyValue를 문자열로 변환
+//                 let date_str = format!("{}", row_values[0]);
+//                 dates.push(date_str);
+//             } else {
+//                 dates.push("".to_string());
+//             }
+//         } else {
+//             dates.push("".to_string());
+//         }
+//     }
     
-    // 날짜 컬럼 인덱스 가져오기
-    let date_idx = df.get_column_names()
-        .iter()
-        .position(|c| c.to_string() == "Date")
-        .ok_or("Date column not found")?;
+//     println!("First 5 converted dates: {:?}", dates.iter().take(5).collect::<Vec<_>>());
     
-    for i in 0..df.height() {
-        if let Some(row) = df.get(i) {
-            let date_value = &row[date_idx];
-            let date_str = format!("{}", date_value);
-            
-            // 따옴표 제거 ('"2010-01-01"' -> '2010-01-01')
-            let clean_date_str = date_str.trim().trim_matches('"');
-            
-            if let Ok(date) = NaiveDate::parse_from_str(clean_date_str, "%Y-%m-%d") {
-                dates.push(date);
-            } else {
-                println!("Failed to parse date: \"{}\"", clean_date_str);
-                dates.push(NaiveDate::from_ymd_opt(1970, 1, 1).unwrap());
-            }
-        }
-    }
+//     // 단일 차트에 표시할 열 목록
+//     let columns_to_plot = [
+//         "AAPL.O", "MSFT.O", "INTC.O", "AMZN.O", "GS.N", 
+//         "SPY", ".SPX", ".VIX", "EUR=", "XAU=", "GDX", "GLD"
+//     ];
     
-    // 이미지 영역 설정 - 이미지 2와 비슷한 크기로
-    let root = BitMapBackend::new(OUT_FILE_NAME, (800, 600)).into_drawing_area();
-    root.fill(&WHITE)?;
+//     // 이미지 크기 및 영역 설정
+//     let root = BitMapBackend::new(OUT_FILE_NAME, (1200, 800)).into_drawing_area();
+//     root.fill(&WHITE)?;
     
-    // 모든 자산의 로그 수익률과 누적 수익률을 계산
-    let mut cumulative_returns: Vec<Vec<(f64, f64)>> = Vec::new();
-    let mut min_cum_return = f64::INFINITY;
-    let mut max_cum_return = f64::NEG_INFINITY;
+//     // 차트에 사용할 데이터 준비
+//     let mut series_data: Vec<(String, Vec<(usize, f64)>)> = Vec::new();
+//     let df_columns: Vec<String> = df.get_column_names()
+//         .iter()
+//         .map(|&col| col.to_string())
+//         .collect();
     
-    for &col_name in columns_to_plot.iter() {
-        // 컬럼 이름을 문자열로 변환하여 비교
-        let col_exists = df.get_column_names()
-            .iter()
-            .any(|c| c.to_string() == col_name);
-            
-        if !col_exists {
-            println!("Column {} not found, skipping", col_name);
-            continue;
-        }
+//     // 모든 데이터의 전체 범위를 결정하기 위한 변수
+//     let mut overall_min_val = f64::INFINITY;
+//     let mut overall_max_val = f64::NEG_INFINITY;
+//     let mut max_length = 0;
+    
+//     for &col_name in columns_to_plot.iter() {
+//         // 컬럼이 존재하는지 확인
+//         if !df_columns.contains(&col_name.to_string()) {
+//             println!("Column {} not found, skipping", col_name);
+//             continue;
+//         }
         
-        // 열 인덱스 찾기
-        let col_idx = df.get_column_names()
-            .iter()
-            .position(|c| c.to_string() == col_name)
-            .ok_or_else(|| format!("Column {} not found", col_name))?;
+//         // 컬럼 데이터 가져오기 및 처리
+//         let column = df.column(col_name)?;
+//         println!("Column {} type: {:?}", col_name, column.dtype());
         
-        // DataFrame에서 직접 값을 추출
-        let mut values: Vec<f64> = Vec::new();
-        for i in 0..df.height() {
-            if let Some(row) = df.get(i) {
-                let value_str = format!("{}", row[col_idx]);
-                if let Ok(v) = value_str.parse::<f64>() {
-                    values.push(v);
-                } else {
-                    values.push(f64::NAN);
-                }
-            }
-        }
+//         // 컬럼 인덱스 찾기
+//         let col_idx = df.get_column_names().iter().position(|&c| c == col_name)
+//             .ok_or_else(|| format!("Column {} not found", col_name))?;
         
-        // 로그 수익률 계산 (Python의 np.log(data / data.shift(1))와 같음)
-        let mut log_returns: Vec<f64> = Vec::new();
-        log_returns.push(0.0); // 첫 번째 값은 NaN이므로 0으로 설정
+//         // 데이터 변환 및 NA 값 필터링
+//         let mut valid_data: Vec<(usize, f64)> = Vec::new();
         
-        for i in 1..values.len() {
-            if values[i].is_nan() || values[i-1].is_nan() || values[i-1] == 0.0 {
-                log_returns.push(0.0);
-            } else {
-                let log_return = (values[i] / values[i-1]).ln();
-                log_returns.push(log_return);
-            }
-        }
+//         for i in 0..df.height() {
+//             if let Some(row_values) = df.get(i) {
+//                 if row_values.len() > col_idx {
+//                     let value_str = format!("{}", row_values[col_idx]);
+//                     if let Ok(v) = value_str.parse::<f64>() {
+//                         valid_data.push((i, v));
+//                     }
+//                 }
+//             }
+//         }
         
-        // 누적 수익률 계산 (Python의 cumsum()과 같음)
-        let mut cum_return = 0.0;
-        let mut series_returns: Vec<(f64, f64)> = Vec::new();
+//         if valid_data.is_empty() {
+//             println!("No valid data for {}, skipping", col_name);
+//             continue;
+//         }
         
-        for (i, &log_ret) in log_returns.iter().enumerate() {
-            if !log_ret.is_nan() {
-                cum_return += log_ret;
-            }
-            
-            if i < dates.len() {
-                // chrono 버전에 따라 아래 두 방법 중 하나를 사용
-                #[cfg(feature = "modern_chrono")]
-                let date_num = dates[i].and_hms_opt(0, 0, 0).unwrap().timestamp() as f64 / 86400.0;
-                
-                #[cfg(not(feature = "modern_chrono"))]
-                let date_num = dates[i].and_hms(0, 0, 0).timestamp() as f64 / 86400.0;
-                
-                series_returns.push((date_num, cum_return));
-                
-                // 누적 수익률의 최소/최대값 업데이트
-                min_cum_return = min_cum_return.min(cum_return);
-                max_cum_return = max_cum_return.max(cum_return);
-            }
-        }
+//         // 데이터 범위 계산 (전체 범위 업데이트)
+//         let series_min = valid_data.iter().map(|&(_, v)| v).fold(f64::INFINITY, |a, b| a.min(b));
+//         let series_max = valid_data.iter().map(|&(_, v)| v).fold(f64::NEG_INFINITY, |a, b| a.max(b));
         
-        cumulative_returns.push(series_returns);
-    }
-    
-    // 주요 날짜의 타임스탬프 계산 (x축 레이블용)
-    let years = ["2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018"];
-    // chrono 버전에 따라 다른 방식으로 타임스탬프 계산
-    #[cfg(feature = "modern_chrono")]
-    let year_timestamps: Vec<f64> = years.iter()
-        .map(|&year| {
-            NaiveDate::parse_from_str(&format!("{}-01-01", year), "%Y-%m-%d")
-                .unwrap()
-                .and_hms_opt(0, 0, 0)
-                .unwrap()
-                .timestamp() as f64 / 86400.0
-        })
-        .collect();
+//         overall_min_val = overall_min_val.min(series_min);
+//         overall_max_val = overall_max_val.max(series_max);
+//         max_length = max_length.max(valid_data.len());
         
-    #[cfg(not(feature = "modern_chrono"))]
-    let year_timestamps: Vec<f64> = years.iter()
-        .map(|&year| {
-            NaiveDate::parse_from_str(&format!("{}-01-01", year), "%Y-%m-%d")
-                .unwrap()
-                .and_hms(0, 0, 0)
-                .timestamp() as f64 / 86400.0
-        })
-        .collect();
+//         // 데이터 저장
+//         series_data.push((col_name.to_string(), valid_data));
+//     }
     
-    // Y축 범위 지정 (여백 추가)
-    let margin = (max_cum_return - min_cum_return) * 0.1;
-    let y_range = (min_cum_return - margin)..(max_cum_return + margin);
+//     if series_data.is_empty() {
+//         return Err("No valid data for any columns".into());
+//     }
     
-    // X축 범위 지정 (이제 날짜 대신 인덱스 사용)
-    let x_range = 0.0..(df.height() as f64);
+//     // 범위에 약간의 여유 추가
+//     let margin = (overall_max_val - overall_min_val) * 0.1;
+//     let y_range = (overall_min_val - margin)..(overall_max_val + margin);
     
-    // 차트 생성
-    let mut chart = ChartBuilder::on(&root)
-        .margin(10)
-        .margin_left(40)
-        .x_label_area_size(40)
-        .y_label_area_size(60)
-        .build_cartesian_2d(x_range, y_range)?;
+//     // 날짜 범위 설정 (인덱스 기반)
+//     let x_range = 0..max_length;
     
-    // 격자 및 레이블 설정
-    chart
-        .configure_mesh()
-        .x_labels(9)  // 레이블 갯수
-        .x_label_formatter(&|&x| {
-            // 간단하게 연도만 표시
-            let years = ["2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018"];
-            let idx = (x / (df.height() as f64) * years.len() as f64) as usize;
-            if idx < years.len() {
-                years[idx].to_string()
-            } else {
-                "".to_string()
-            }
-        })
-        .y_desc("Cumulative Log Return")
-        .draw()?;
+//     // 메인 차트 생성
+//     let mut chart = ChartBuilder::on(&root)
+//         .margin(5)
+//         .margin_left(60)
+//         .margin_right(60)
+//         .x_label_area_size(40)
+//         .y_label_area_size(60)
+//         .caption("Combined Financial Instruments", ("sans-serif", 30))
+//         .build_cartesian_2d(x_range.clone(), y_range)?;
     
-    // 색상 선택 - 각 시리즈마다 다른 색상
-    let colors = [
-        &RED, &BLUE, &GREEN, &MAGENTA, &BLACK, 
-        &CYAN, &RGBColor(128, 0, 0), &RGBColor(128, 128, 0),
-        &RGBColor(218, 165, 32), &RGBColor(70, 130, 180),
-        &RGBColor(210, 105, 30), &RGBColor(0, 100, 0)
-    ];
+//     // 색상 선택 - 각 시리즈마다 다른 색상
+//     let colors = [
+//         &BLUE, &GREEN, &RED, &MAGENTA, &YELLOW, 
+//         &CYAN, &BLACK, &RGBColor(34, 139, 34), &RGBColor(128, 0, 128),
+//         &RGBColor(218, 165, 32), &RGBColor(210, 105, 30), &RGBColor(70, 130, 180)
+//     ];
     
-    // 범례 설정
-    chart
-        .configure_series_labels()
-        .position(SeriesLabelPosition::UpperLeft)
-        .background_style(WHITE.mix(0.8))
-        .border_style(&BLACK)
-        .label_font(("sans-serif", 12))
-        .draw()?;
+//     // 격자 및 레이블 설정
+//     chart
+//         .configure_mesh()
+//         .light_line_style(&TRANSPARENT)
+//         .bold_line_style(RGBColor(200, 200, 200).mix(0.3))
+//         .y_labels(10)
+//         .x_labels(10)
+//         .x_label_formatter(&|x| {
+//             // x 축 레이블: 일정 간격으로 날짜 표시
+//             let idx_step = max_length / 10;
+//             if idx_step > 0 && (*x % idx_step == 0 || *x == 0 || *x == max_length - 1) {
+//                 // 데이터 포인트의 인덱스를 사용하여 날짜 찾기
+//                 if let Some((series_name, data_points)) = series_data.first() {
+//                     if let Some(&(date_idx, _)) = data_points.get(*x) {
+//                         if date_idx < dates.len() {
+//                             let date_str = &dates[date_idx];
+//                             if date_str.len() >= 4 {
+//                                 return date_str[0..4].to_string(); // 연도만 표시
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//             "".to_string()
+//         })
+//         .draw()?;
     
-    // 각 자산의 누적 수익률 그래프 그리기
-    for (idx, series_data) in cumulative_returns.iter().enumerate() {
-        let col_name = columns_to_plot[idx];
-        let color = colors[idx % colors.len()];
+//     // 차트 범례 설정
+//     chart
+//         .configure_series_labels()
+//         .position(SeriesLabelPosition::UpperLeft)
+//         .background_style(WHITE.mix(0.8))
+//         .border_style(&BLACK)
+//         .label_font(("sans-serif", 12))
+//         .draw()?;
+    
+//     // 모든 시리즈 그리기
+//     for (idx, (series_name, data_points)) in series_data.iter().enumerate() {
+//         let color = colors[idx % colors.len()];
         
-        chart
-            .draw_series(LineSeries::new(
-                series_data.clone(),
-                color.stroke_width(2),
-            ))?
-            .label(col_name)
-            .legend(move |(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], color.stroke_width(2)));
-    }
+//         chart
+//             .draw_series(LineSeries::new(
+//                 data_points.iter().enumerate().map(|(idx, &(_, v))| (idx, v)),
+//                 color.to_owned().mix(0.9).stroke_width(2),
+//             ))?
+//             .label(series_name)
+//             .legend(move |(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], color.stroke_width(2)));
+//     }
     
-    // 이미지 저장
-    root.present()?;
-    println!("Cumulative returns chart saved to {}", OUT_FILE_NAME);
+//     // 이미지 저장
+//     root.present()?;
+//     println!("Combined chart saved to {}", OUT_FILE_NAME);
     
-    Ok(())
-}
+//     Ok(())
+// }
