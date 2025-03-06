@@ -1,5 +1,5 @@
-
+pub mod ch1;
+pub mod ch2;
 pub fn example() {
-    let doesnt_print= ();
-    println!("This will not print: {:?}",doesnt_print);
+    ch2::example();
 }
