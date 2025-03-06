@@ -1,5 +1,7 @@
 pub mod ch1;
 pub mod ch2;
+pub mod ch3;
+pub mod ch5;
 pub fn example() {
-    ch2::example();
+    ch5::example();
 }
