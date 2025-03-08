@@ -1,7 +1,20 @@
 use ndarray::{Array, Array1};
 use ndarray_rand::rand_distr::Uniform;
 use ndarray_rand::RandomExt;
+fn ch2_0(){
+    let n = 1000000;
+    let m = 2;  // 3에서 2로 변경
 
+    let mut heads: Array1<f64> = Array::zeros(m + 1);
+    for i in 0..n {
+        let random_array: Array1<usize> = Array::random(m, Uniform::new(0, 2));
+        let counts = bincount(&random_array, 2);
+        let h = counts[0];
+        heads[m - h] += 1.;
+    }
+    let prob = &heads / n as f64;
+    println!("Probabilities: {:.6}", prob);
+}
 fn ch2_1() {
     let n = 1000000;
     let m = 3;
@@ -206,7 +219,7 @@ fn ch2_6() {
     println!("No Boston in the fall {:.4}", nb as f64 / n as f64);
 }
 pub fn example() {
-    ch2_6();
+    ch2_0();
 }
 fn bincount(arr: &Array1<usize>, minlength: usize) -> Array1<usize> {
     let max_val = arr.iter().max().copied().unwrap_or(0);
