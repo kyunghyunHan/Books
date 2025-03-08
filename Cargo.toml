@@ -14,3 +14,7 @@ ndarray = "0.16.1"
 ndarray-rand = "0.15.0"
 polars = { version = "0.46.0", features = ["ndarray","to_dummies","lazy","describe","strings","list_count","describe","cov","log","rolling_window"] }
 chrono = "0.4.39"
+plotters = "0.3.7"
+
+[patch.crates-io]
+pathfinder_simd = { git = "https://github.com/theoparis/pathfinder.git" }
