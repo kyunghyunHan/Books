@@ -6,7 +6,7 @@ fn ch2_0(){
     let m = 2;  // 3에서 2로 변경
 
     let mut heads: Array1<f64> = Array::zeros(m + 1);
-    for i in 0..n {
+    for _ in 0..n {
         let random_array: Array1<usize> = Array::random(m, Uniform::new(0, 2));
         let counts = bincount(&random_array, 2);
         let h = counts[0];
