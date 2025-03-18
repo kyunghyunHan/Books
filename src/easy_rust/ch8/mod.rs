@@ -78,6 +78,35 @@ fn ch8_3() {
     }
     println!("{:?}", empty_vec);
 }
+
+fn ch8_4() {
+    let mut big_vec = vec![6, 1000];
+    big_vec.push(5);
+    println!("{:?}", big_vec.iter().rev().any(|&number| number == 5));
+
+    let num_vec = vec![10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+
+    println!("{:?}", num_vec.iter().find(|&number| number % 3 == 0));
+    println!("{:?}", num_vec.iter().find(|&number| number * 2 == 30));
+    //위치를 나타냄
+    println!("{:?}", num_vec.iter().position(|&number| number % 3 == 0));
+}
+//cycle을 사영하면 끊임없이 반복
+fn ch8_5() {
+    let even_odd = vec!["even", "odd"];
+    let even_odd_vec = (0..6)
+        .zip(even_odd.into_iter().cycle())
+        .collect::<Vec<(i32, &str)>>();
+    println!("{:?}", even_odd_vec);
+}
+
+fn ch8_6() {
+    let ten_chars = ('a'..).take(10).collect::<Vec<char>>();
+    let skip_then_ten_chars = ('a'..).skip(1300).take(10).collect::<Vec<char>>();
+
+    println!("{:?}", ten_chars);
+    println!("{:?}", skip_then_ten_chars);
+}
 pub fn example() {
-    ch8_3();
+    ch8_6();
 }
