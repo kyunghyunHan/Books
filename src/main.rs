@@ -8,7 +8,7 @@ fn main() {
     // atomic::example();
     // concurrent::example();
     // financial_engineering::example();
-    // easy_rust::example();
+    easy_rust::example();
     // deep_learning_math::example();
-    computational_finance::example();
+    // computational_finance::example();
 }

@@ -48,8 +48,5 @@ pub fn example() {
     println!("Monthly compounding: ${:.2}", monthly_compound_values.last().unwrap());
     println!("Continuous compounding: ${:.2}", continuous_values.last().unwrap());
     
-    // Note: In Python we used formatting for thousands separators
-    // Rust's standard library doesn't have this built-in
-    // You would need to implement custom formatting or use a crate like 'num-format'
-    // for proper thousands separators
+
 }
