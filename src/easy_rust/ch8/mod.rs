@@ -107,6 +107,16 @@ fn ch8_6() {
     println!("{:?}", ten_chars);
     println!("{:?}", skip_then_ten_chars);
 }
+
+fn ch8_7() {
+    let some_numbers = vec![9, 6, 9, 10, 11];
+    println!(
+        "{}",
+        some_numbers
+            .iter()
+            .fold(0, |total_fo_far, next_number| total_fo_far + next_number)
+    );
+}
 pub fn example() {
-    ch8_6();
+    ch8_7();
 }
