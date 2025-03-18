@@ -117,6 +117,22 @@ fn ch8_7() {
             .fold(0, |total_fo_far, next_number| total_fo_far + next_number)
     );
 }
+
+fn ch8_8() {
+    let a_string = "i don't have any dashes in me";
+
+    println!(
+        "{}",
+        a_string
+            .chars()
+            .fold("-".to_string(), |mut string_so_far, next_char| {
+                //문자열 - 로시작
+                string_so_far.push(next_char);
+                string_so_far.push('_');
+                string_so_far
+            })
+    )
+}
 pub fn example() {
-    ch8_7();
+    ch8_8();
 }
