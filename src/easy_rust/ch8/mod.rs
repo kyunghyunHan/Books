@@ -64,7 +64,20 @@ fn ch8_2() {
     }
 }
 
-fn 
+fn ch8_3() {
+    let new_vec = vec!["8", "9", "Ninetyniney"];
+    let mut empty_vec = vec![];
+
+    for index in 0..5 {
+        empty_vec.push(
+            new_vec
+                .get(index)
+                .and_then(|number| number.parse::<i32>().ok())
+                .and_then(|number| f64::try_from(number).ok()),
+        );
+    }
+    println!("{:?}", empty_vec);
+}
 pub fn example() {
-    ch8_2();
+    ch8_3();
 }
