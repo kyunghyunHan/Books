@@ -1,3 +1,5 @@
+use core::num;
+
 fn ch8_1() {
     let months = vec![
         "January",
@@ -133,6 +135,67 @@ fn ch8_8() {
             })
     )
 }
+/*
+by_ref :이데이터를 참조로변환
+*/
+fn ch8_9() {
+    let mut number_vec = vec![7, 8, 9, 10].into_iter();
+    let first_two = number_vec.by_ref().take(2).collect::<Vec<_>>();
+    let second_two = number_vec.take(2).collect::<Vec<_>>();
+}
+
+fn ch8_10() {
+    let num_vec = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
+
+    for chunk in num_vec.chunks(3) {
+        println!("{:?}", chunk);
+    }
+
+    println!();
+
+    for window in num_vec.windows(3) {
+        println!("{:?}", window);
+    }
+}
+fn ch8_11() {
+    let rules = "Rule number 1: No fighting. Rule number 2: Go to bed at 8pm. Rule number 3: Wake up at 6am.";
+    let rule_locations = rules.match_indices("Rule").collect::<Vec<_>>();
+
+    println!("{:?}", rule_locations);
+}
+
+fn ch8_12() {
+    let just_numbers = vec![1, 5, 100];
+    let mut number_iter = just_numbers.iter().peekable();
+
+    for _ in 0..3 {
+        println!("I love the number {}", number_iter.peek().unwrap());
+        println!("I really love the number {}", number_iter.peek().unwrap());
+        println!("{} is such a nuce number", number_iter.peek().unwrap());
+        number_iter.next();
+    }
+}
+
+fn ch8_13() {
+    let locations = vec![
+        ("Nevis", 25),
+        ("Taber", 8428),
+        ("Markeville", 45),
+        ("Cardston", 3585),
+    ];
+
+    let mut location_iter = locations.iter().peekable();
+    while location_iter.peek().is_some() {
+        match location_iter.peek() {
+            Some((name, number)) if *number < 100 => {
+                println!("Found a hamlet:{name} with {number} people");
+            }
+            Some((name, number)) => println!("Found a town: {name} with {number} people"),
+            None => break,
+        }
+        location_iter.next();
+    }
+}
 pub fn example() {
-    ch8_8();
+    ch8_13();
 }
